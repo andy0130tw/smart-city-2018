@@ -11,13 +11,19 @@ import csv2 from '../../hack2018新北.csv';
 
 import L from 'leaflet';
 import './leaflet.extra-markers';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-var map = L.map('map').setView([25.046401, 121.517641], 11);
+var map = L.map('map', {
+  minZoom: 10,
+  maxZoom: 20,
+  maxBounds: [[24.5, 120], [25.5, 123]]
+}).setView([25.046401, 121.517641], 12);
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-    maxZoom: 20,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
 }).addTo(map);
 
 // L.marker([25.046401, 121.517641]).addTo(map)
@@ -25,11 +31,23 @@ L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
 //     .openPopup();
 
 function parseCSV(csv) {
-  return csv
+  let clusterGroup = new L.MarkerClusterGroup({
+    disableClusteringAtZoom: 15,
+    maxClusterRadius: zoom => {
+      if (zoom <= 11) return 80;
+      if (zoom <= 12) return 70;
+      if (zoom <= 14) return 60;
+      return 50;
+    }
+  });
+
+  let markers = [];
+
+  csv
     .split('\n').slice(1)
     .map(line => line.split(','))
     .forEach(arr => {
-      let [sno,sna,tot,lat,lng,sarea] = arr;
+      let [sno, sna, tot, lat, lng, sarea] = arr;
 
       let mark = L.ExtraMarkers.icon({
         icon: 'fa-bicycle',
@@ -38,11 +56,14 @@ function parseCSV(csv) {
         prefix: 'fa'
       });
 
-      L.marker([lat, lng], { icon: mark }).addTo(map)
-       .bindPopup(sna)
+      let marker = L.marker([lat, lng], { icon: mark })
+                    .bindPopup(`<h2>${sna}</h2>@${sarea} x ${tot}`);
 
-      console.log(arr);
+      markers.push(marker);
     });
+
+  clusterGroup.addLayers(markers);
+  map.addLayer(clusterGroup);
 }
 
 parseCSV(csv1);
