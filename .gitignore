@@ -75,3 +75,6 @@ typings/
 # build output
 static/assets
 static/dist
+
+# Mac garbage
+.DS_Store

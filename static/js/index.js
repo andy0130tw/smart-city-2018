@@ -3,6 +3,9 @@ import '../css/styles.scss';
 import '../css/leaflet.extra-markers.css';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet/dist/images/marker-shadow.png';
+import yoethwallet from 'yoethwallet'
+
+
 // import '@fortawesome/fontawesome-free/js/solid';
 // import '@fortawesome/fontawesome-free/js/fontawesome';
 
@@ -68,3 +71,57 @@ function parseCSV(csv) {
 
 parseCSV(csv1);
 parseCSV(csv2);
+
+
+// var password = 'Zxc1233211234567';
+var keystore = {};
+var address = '';
+var privateKey = '';
+var keystoreJson = '';
+var keystoreJsonDataLink = '';
+var hdPathString = 'm/44\'/60\'/0\'/0';
+var fileName = '';
+window.newWallet = [];
+
+
+
+function newAddress () { // (password) {
+  if (typeof keystore.getHexAddress !== 'function') {
+    return false
+  }
+
+  let wallet = keystore
+
+  privateKey = wallet.getHexPrivateKey()
+  address = wallet.getHexAddress(true)
+  newWallet = [address, privateKey];
+  /*
+  wallet.toV3String(password, {}, (err, v3Json) => {
+    if (err) {
+      console.warn(err.message)
+      return
+    }
+    keystoreJson = v3Json
+    keystoreJsonDataLink = encodeURI('data:application/json;charset=utf-8,' + keystoreJson)
+    fileName = `${wallet.getV3Filename()}.json`
+  })
+  */
+}
+
+function generate () {
+
+  let wallet = yoethwallet.wallet
+
+  wallet.generate('', hdPathString, (err, keystore_f) => {
+    if (err) {
+      console.warn(err.message)
+      return
+    }
+
+    keystore = keystore_f
+    newAddress() // (password)
+  })
+
+}
+
+window.generate = generate;
