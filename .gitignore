@@ -72,3 +72,6 @@ typings/
 # Serverless directories
 .serverless
 
+# build output
+static/assets
+static/dist
