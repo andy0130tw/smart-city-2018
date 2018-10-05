@@ -60,6 +60,10 @@ module.exports = {
         ]
       },
       {
+        test: /\.csv$/,
+        use: 'raw-loader'
+      },
+      {
         test: /.(jpe?g|png|gif)$/,
         use: [{
           loader: 'file-loader',
