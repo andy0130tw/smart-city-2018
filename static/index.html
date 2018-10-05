@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html lang="zh-hant-TW">
+
 <head>
-  <meta charset="utf-8">
-  <title>Hello world</title>
-  <link rel="stylesheet" href="dist/main.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Hello world</title>
+    <link rel="stylesheet" href="dist/main.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body>
-  <div id="map">
-  </div>
-  <script src="dist/bundle.js"></script>
+    <div id="map">
+    </div>
+    <script src="dist/bundle.js"></script>
+    <script>
+    function addressToLatLng(addr) {
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+            "address": addr
+        }, function(results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                console.log(results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() + "\n");
+            } else {
+                console.log(addr + "查無經緯度" + "\n");
+            }
+        });
+    }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 </body>
+
 </html>
