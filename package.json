@@ -1,0 +1,10 @@
+{
+  "name": "smart-city-2018",
+  "version": "0.0.1",
+  "description": "SmartCity",
+  "main": "index.js",
+  "repository": "https://github.com/andy0130tw/smart-city-2018",
+  "author": "Andy Pan <andy0130tw@yahoo.com.tw>",
+  "license": "MIT",
+  "private": true
+}
