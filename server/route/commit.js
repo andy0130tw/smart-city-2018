@@ -26,45 +26,7 @@ module.exports = async(req, res) => {
     return;
   }
 
-  if (!req.body.signature ||
-      !req.body.signature.match(/^0x[0-9a-fA-F]{130}$/)) {
-    res.json({ result: false, msg: 'invalid signature' });
-    return;
-  }
-
-  if (!req.body.amount || !req.body.amount.match(/^\d+$/) ||
-      !req.body.nonce  || !req.body.nonce.match(/^\d+$/)) {
-    res.json({ result: false, msg: 'invalid number' });
-    return;
-  }
-
   let address = req.body.address.toLowerCase();
-  let signature = req.body.signature;  
-
-  let hash = Web3.utils.soliditySha3(
-    address,
-    process.env.ADDRCONTRACT,
-    req.body.amount,
-    req.body.nonce
-  );
-
-  console.log('hash', hash);
-   
-  let recoveredPubKey = ethUtil.ecrecover(
-    ethUtil.toBuffer(hash),
-    parseInt(signature.substr(130, 2), 16),
-    Buffer.from(signature.substr(2, 64), 'hex'),
-    Buffer.from(signature.substr(66, 64), 'hex')
-  );
-
-  let recoveredPubAddr = ethUtil.bufferToHex(ethUtil.pubToAddress(recoveredPubKey));
-
-  console.log(recoveredPubAddr, address);
-
-  if (recoveredPubAddr != address) {
-    res.json({ result: false, msg: 'signature mismatch' });
-    return;
-  }
 
   try {
     console.log(`req.body.start: ${req.body.start}`);
@@ -94,9 +56,11 @@ module.exports = async(req, res) => {
 
     let db_try_insert = await method.db.query(`INSERT IGNORE INTO bookkeeping (address, amount) VALUES ("${address}", "0")`);
 
-    let db_query = await method.db.query(`SELECT amount FROM bookkeeping WHERE address = "${address}" FOR UPDATE;`);
+    let db_query = await method.db.query(`SELECT amount, nonce FROM bookkeeping WHERE address = "${address}" FOR UPDATE;`);
     let new_amount = new BN(db_query[0].amount).add(new BN(giving_token_amount));
+    let nonce = db_query[0].nonce;
     console.log('amount: ', db_query[0].amount, '->', new_amount.toString());
+    console.log('nonce: ', nonce);
 
     let db_modify = await method.db.query(`UPDATE bookkeeping SET amount = "${new_amount.toString()}" WHERE address = "${address}"`);
 
@@ -110,13 +74,18 @@ module.exports = async(req, res) => {
       address,
       process.env.ADDRCONTRACT,
       new_amount.toString(),
-      req.body.nonce
+      nonce
     );
 
     let vrs = ethUtil.ecsign(ethUtil.toBuffer(newHash), Buffer.from(process.env.ETHPRIVATEKEY, 'hex'));
     let retSign = `0x${vrs.r.toString('hex')}${vrs.s.toString('hex')}${vrs.v.toString(16)}`;
 
-    res.json({ result: result, new_amount: new_amount.toString(), signature: retSign });
+    res.json({
+      result: result,
+      new_amount: new_amount.toString(),
+      signature: retSign,
+      nonce: nonce
+    });
 
   } catch (e) {
     res.json({ result: false });
