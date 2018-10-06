@@ -34,7 +34,6 @@ var lastStartPosition = null;
 var lastStartSno = null;
 
 var state = 'idle';
-window.nonce = 0;
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -144,13 +143,13 @@ const addrContract = '0xc37c19360c617d2f425dc2b1191eca5662aed525';
 $("#submit_return").on("click", function () {
     let end_loc = $(".end-btn").data('sno');
     console.log("end_loc: " + end_loc)
-    let sig = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenBalance);
+    // let sig = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenBalance);
 
     if (localStorage.youbike_wallet) {
         console.log("123");
       fetch('http://35.221.238.24:4000/api/commit', {
         method: 'POST',
-        body: `start=${lastStartSno}&end=${end_loc}&address=${JSON.parse(localStorage.youbike_wallet)[0]}&signature=${sig}&nonce=0&amount=0`,
+        body: `start=${lastStartSno}&end=${end_loc}&address=${JSON.parse(localStorage.youbike_wallet)[0]}`,
         headers: {
           'content-type': 'application/x-www-form-urlencoded'
         },
@@ -159,6 +158,8 @@ $("#submit_return").on("click", function () {
       .then(data => {
         console.log(data);
         localStorage.dispTokenPendingBalance = data.new_amount;
+        localStorage.nonce = data.nonce;
+        $('#dispTokenPendingBalance').text(parseFloat(Web3.utils.fromWei(localStorage.dispTokenPendingBalance)).toFixed(3));
 
 
         console.log(ecrecoverRedeemByAdmin(data));
@@ -172,7 +173,7 @@ $("#submit_return").on("click", function () {
 
 function ecrecoverRedeemByAdmin(response) {
 
-  var hash = ethUtil.toBuffer(Web3.utils.soliditySha3(JSON.parse(localStorage.youbike_wallet)[0], addrContract, response.new_amount, nonce));
+  var hash = ethUtil.toBuffer(Web3.utils.soliditySha3(JSON.parse(localStorage.youbike_wallet)[0], addrContract, response.new_amount, localStorage.nonce));
 
 
   let recoveredPubKey = ethUtil.ecrecover(
@@ -182,7 +183,7 @@ function ecrecoverRedeemByAdmin(response) {
     Buffer.from(response.signature.substr(66, 64), 'hex')
   );
 
-  
+
   return ethUtil.publicToAddress(recoveredPubKey).toString('hex');
 
 
@@ -190,7 +191,7 @@ function ecrecoverRedeemByAdmin(response) {
 
 function siginRedeemByAdmin(address, privatekey, amount) {
   var privkey = new Buffer(privatekey, 'hex');
-  var data = ethUtil.toBuffer(Web3.utils.soliditySha3(address, addrContract, amount, nonce));
+  var data = ethUtil.toBuffer(Web3.utils.soliditySha3(address, addrContract, amount, localStorage.nonce));
   var vrs = ethUtil.ecsign(data, privkey);
   var pubkey = ethUtil.ecrecover(data, vrs.v, vrs.r, vrs.s);
   console.log("0x" + vrs.r.toString('hex') + vrs.s.toString('hex') + vrs.v.toString(16));
@@ -360,4 +361,3 @@ $('#locate').on('click', function() {
 
 window.generate = generate;
 window.addressToLatLng = addressToLatLng;
-window.siginRedeemByAdmin = siginRedeemByAdmin
