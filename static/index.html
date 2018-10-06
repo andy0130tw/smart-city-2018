@@ -9,9 +9,23 @@
 </head>
 
 <body>
-    <div id="map">
-    </div>
+	<div id="mapwrap">
+	  <div id="toolbar">
+	    <div class="hamburger">
+	      <span>Menu</span>
+	    </div>
+	    <div id="menu">
+	      <h2>Youbike Stops</h2>
+	      <ul><a href="#">DEMO 1</a></ul>
+	      <ul><a href="#">DEMO 2</a></ul>
+	      <ul><a href="#">DEMO 3</a></ul>
+	    </div>
+	  </div>
+	  <div id="map"></div>
+	</div>
+
     <script src="dist/bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
     function addressToLatLng(addr) {
         var geocoder = new google.maps.Geocoder();
@@ -25,6 +39,16 @@
             }
         });
     }
+
+
+	$('#toolbar .hamburger').on('click', function() {
+	  $(this).parent().toggleClass('open');
+	});
+
+
+
+
+
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
 </body>
