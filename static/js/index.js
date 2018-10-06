@@ -4,6 +4,8 @@ import '../css/leaflet.extra-markers.css';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet/dist/images/marker-shadow.png';
 import yoethwallet from 'yoethwallet'
+import ethUtil from 'ethereumjs-util';
+import Web3 from 'web3';
 
 import Controller from './controller';
 
@@ -32,6 +34,7 @@ var lastStartPosition = null;
 var lastStartSno = null;
 
 var state = 'idle';
+window.nonce = 0;
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -75,7 +78,7 @@ function parseCSV(csv) {
                             <span class="distance"></span>
                             <span class="tokenInfo"></span></p>
                             <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]" data-sno="${sno}">開始騎乘</button>&nbsp;
-                            <button type="button" class="btn btn-success end-btn" ${state == 'riding' ? '' : 'disabled'} value="[${lat}, ${lng}]" data-sno="${sno}">還車</button>`));
+                            <button type="button" class="btn btn-success end-btn" ${state == 'riding' ? '' : 'disabled'} value="[${lat}, ${lng}]" data-sno="${sno}" data-toggle="modal" data-target="#returnBike">還車</button>`));
 
             marker.sno = sno;
 
@@ -91,7 +94,7 @@ function parseCSV(csv) {
                   $('.leaflet-popup .distance').html(`<strong>起始點</strong>`);
                 } else {
                   $('.leaflet-popup .distance').html(`距離租車點 ${Math.round(distance)}m`);
-                  fetch('http://35.221.238.24:3000/api/get', {
+                  fetch('http://35.221.238.24:4000/api/get', {
                     method: 'POST',
                     body: `start=${lastStartSno}&end=${evt.target.sno}`,
                     headers: {
@@ -133,14 +136,75 @@ $("#map").on("click", '.leaflet-popup .start-btn', function () {
     state = 'riding';
     lastStartPosition = loc;
     lastStartSno = $(this).data('sno');
-
-    $("#start").val($(this).val());
 });
 
-$("#map").on("click", '.leaflet-popup .end-btn', function () {
-    console.log($(this).val());
-    $("#end").val($(this).val());
+
+const addrContract = '0xc37c19360c617d2f425dc2b1191eca5662aed525';
+
+$("#submit_return").on("click", function () {
+    let end_loc = $(".end-btn").data('sno');
+    console.log("end_loc: " + end_loc)
+    let sig = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenBalance);
+
+    if (localStorage.youbike_wallet) {
+        console.log("123");
+      fetch('http://35.221.238.24:4000/api/commit', {
+        method: 'POST',
+        body: `start=${lastStartSno}&end=${end_loc}&address=${JSON.parse(localStorage.youbike_wallet)[0]}&signature=${sig}&nonce=0&amount=0`,
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded'
+        },
+      })
+      .then(resp => resp.json())
+      .then(data => {
+        console.log(data);
+        localStorage.dispTokenPendingBalance = data.new_amount;
+
+
+        console.log(ecrecoverRedeemByAdmin(data));
+        $('#returnBike').modal('hide');
+      });
+    }
+
 });
+
+
+
+function ecrecoverRedeemByAdmin(response) {
+
+  var hash = ethUtil.toBuffer(Web3.utils.soliditySha3(JSON.parse(localStorage.youbike_wallet)[0], addrContract, response.new_amount, nonce));
+
+
+  let recoveredPubKey = ethUtil.ecrecover(
+    ethUtil.toBuffer(hash),
+    parseInt(response.signature.substr(130, 2), 16),
+    Buffer.from(response.signature.substr(2, 64), 'hex'),
+    Buffer.from(response.signature.substr(66, 64), 'hex')
+  );
+
+  
+  return ethUtil.publicToAddress(recoveredPubKey).toString('hex');
+
+
+}
+
+function siginRedeemByAdmin(address, privatekey, amount) {
+  var privkey = new Buffer(privatekey, 'hex');
+  var data = ethUtil.toBuffer(Web3.utils.soliditySha3(address, addrContract, amount, nonce));
+  var vrs = ethUtil.ecsign(data, privkey);
+  var pubkey = ethUtil.ecrecover(data, vrs.v, vrs.r, vrs.s);
+  console.log("0x" + vrs.r.toString('hex') + vrs.s.toString('hex') + vrs.v.toString(16));
+  /*
+  // Check !
+  var check1 = pubkey.toString('hex') == ethUtil.privateToPublic(privkey).toString('hex');
+  var check2 = ethUtil.publicToAddress(pubkey).toString('hex') == ethUtil.privateToAddress(privkey).toString('hex');
+  // Check is ok !
+
+  return check1 && check2;
+  */
+  return "0x" + vrs.r.toString('hex') + vrs.s.toString('hex') + vrs.v.toString(16);
+}
+
 
 // var password = 'Zxc1233211234567';
 var keystore = {};
@@ -296,3 +360,4 @@ $('#locate').on('click', function() {
 
 window.generate = generate;
 window.addressToLatLng = addressToLatLng;
+window.siginRedeemByAdmin = siginRedeemByAdmin

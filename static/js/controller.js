@@ -21,14 +21,22 @@ if (localStorage.youbike_wallet) {
 }
 
 
+if (!localStorage.dispTokenBalance) localStorage.dispTokenBalance = "0";
+if (!localStorage.dispTokenPendingBalance) localStorage.dispTokenPendingBalance = "0";
+
+// localStorage.dispTokenPendingBalance = "0";localStorage.dispTokenBalance = "0";
+
 let contract = new web3.eth.Contract(ABI, addrContract);
 
-contract.methods.balances(web3.eth.defaultAccount).call().then(bal => {
-  $('#dispTokenBalance').text(parseFloat(Web3.utils.fromWei(bal)).toFixed(3));
-});
+if (web3.eth.defaultAccount) {
+	contract.methods.balances(web3.eth.defaultAccount).call().then(bal => {
+	  $('#dispTokenBalance').text(parseFloat(Web3.utils.fromWei(bal)).toFixed(3));
+	});
 
-// for demo
-$('#dispTokenPendingBalance').text();
+	$('#dispTokenPendingBalance').text(parseFloat(Web3.utils.fromWei(localStorage.dispTokenPendingBalance)).toFixed(3));
+}
+
+
 
 
 export default {
