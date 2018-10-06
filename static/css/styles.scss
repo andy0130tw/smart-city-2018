@@ -20,6 +20,20 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
   overflow: hidden;
 }
 
+#cal {
+  background: rgba(255, 255, 255, 1);
+  opacity: .75;
+  width: 300px;
+  height: 600px;
+  height: 45vh;
+  position: absolute;
+  right: 0;
+  z-index: 1;
+  transition: .5s right;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
 #toolbar {
   background: rgba(255, 255, 255, 1);
   opacity: .6;
