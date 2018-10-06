@@ -20,7 +20,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 var map = L.map('map', {
     minZoom: 10,
-    maxZoom: 20,
     maxBounds: [
         [24.5, 120],
         [25.5, 123]
@@ -28,6 +27,7 @@ var map = L.map('map', {
 }).setView([25.046401, 121.517641], 12);
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
 }).addTo(map);
@@ -152,6 +152,17 @@ function geolocate() {
               lat: position.coords.latitude,
               lng: position.coords.longitude
           };
+
+          let latlng = [pos.lat, pos.lng];
+          map.setView(latlng, 17);
+
+          let mark = L.ExtraMarkers.icon({
+              icon: 'fa-location-arrow',
+              markerColor: 'yellow',
+              prefix: 'fa'
+          });
+
+          let marker = L.marker(latlng, { icon: mark }).addTo(map);
 
           infoWindow.setPosition(pos);
           infoWindow.setContent('Location found.');
