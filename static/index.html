@@ -15,6 +15,7 @@
             	<span>Address:</span><p id="address"></p>
             	<span>Private Key:</span><p id="private_key"></p>
                 <h2><button id="new_wallet" class="btn btn-primary">New Wallet</button></h2>
+                <h2><button id="remove_wallet" class="btn btn-danger" style="display: none;">Remove Wallet</button></h2>
             </div>
         </div>
         <div id="toolbar">
@@ -75,10 +76,32 @@
         $(this).parent().toggleClass('open');
     });
 
+    $(function() {
+    	if (localStorage.youbike_wallet) {
+	        $('#address').text(JSON.parse(localStorage.youbike_wallet)[0]);
+	        $('#private_key').text(JSON.parse(localStorage.youbike_wallet)[1]);
+    		$('#new_wallet').hide();
+        	$('#remove_wallet').show();
+    	}
+	    
+	});
+
     $('#new_wallet').on('click', function() {
         generate();
         $('#address').text(newWallet[0]);
         $('#private_key').text(newWallet[1]);
+        localStorage.youbike_wallet = JSON.stringify(newWallet);
+        $('#new_wallet').hide();
+        $('#remove_wallet').show();
+    });
+
+    $('#remove_wallet').on('click', function() {
+        generate();
+        $('#address').text("");
+        $('#private_key').text("");
+        localStorage.youbike_wallet = "";
+        $('#new_wallet').show();
+        $('#remove_wallet').hide();
     });
 
     $('#locate').on('click', function() {
