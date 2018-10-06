@@ -63,7 +63,7 @@ function parseCSV(csv) {
             });
 
             let marker = L.marker([lat, lng], { icon: mark })
-                .bindPopup(`<h2>${sna}</h2>@${sarea} x ${tot}`);
+                          .bindPopup(`<h2>${sna}</h2><p class="lead">@${sarea} x ${tot}</p>`);
 
             markers.push(marker);
         });
@@ -140,6 +140,29 @@ function addressToLatLng(addr) {
             console.log(addr + "查無經緯度" + "\n");
         }
     });
+}
+
+
+function geolocate() {
+  var infoWindow = new google.maps.InfoWindow;
+  console.log()
+  if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+          var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+          };
+
+          infoWindow.setPosition(pos);
+          infoWindow.setContent('Location found.');
+          console.log(pos);
+      }, function() {
+          handleLocationError(true, infoWindow, map.getCenter());
+      });
+  } else {
+      // Browser doesn't support Geolocation
+      handleLocationError(false, infoWindow, map.getCenter());
+  }
 }
 
 
