@@ -26,6 +26,8 @@ var map = L.map('map', {
     ]
 }).setView([25.046401, 121.517641], 12);
 
+var layerCurPos = L.layerGroup().addTo(map);
+
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -162,7 +164,9 @@ function geolocate() {
               prefix: 'fa'
           });
 
-          let marker = L.marker(latlng, { icon: mark }).addTo(map);
+          let marker = L.marker(latlng, { icon: mark });
+          layerCurPos.clearLayers();
+          layerCurPos.addLayer(marker);
 
           infoWindow.setPosition(pos);
           infoWindow.setContent('Location found.');
