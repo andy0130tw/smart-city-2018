@@ -1,47 +1,100 @@
 const method = require('../module');
 const moment = require('moment');
-async function sno2data(sno){
-		let sbi = await method.redis.hget(`youbike:${sno}:sbi`);
-    let bemp = await method.redis.hget(`youbike:${sno}:bemp`);
-    let act = await method.redis.hget(`youbike:${sno}:act`);
-    let location = await method.redis.hget(`location:${sno}`);
-    let now_day = moment().utcOffset('+0800').date();
-    let now_hr = moment().utcOffset('+0800').hour();
-    let db_data = await method.db.query(`select data_time, t, pop, create_date from weather where locationName = '${location}'`);
+const format = 'HH:mm:ss';
+async function sno2data(sno, start = 0) {
+  let sbi = await method.redis.hget(`youbike:${sno}:sbi`);
+  let bemp = await method.redis.hget(`youbike:${sno}:bemp`);
+  let act = await method.redis.hget(`youbike:${sno}:act`);
+  let location = await method.redis.hget(`location:${sno}`);
+  let now_day = moment().utcOffset('+0800').date();
+  let now_hr = moment().utcOffset('+0800').hour();
+  let db_data = await method.db.query(`select data_time, t, pop, create_date from weather where locationName = '${location}'`);
 
-    let result = {};
-    // console.log(`date ${now_hr}/${now_day}`);
-    console.log(`id: ${sno}`);
-    console.log(`可借車位 ${sbi} 可還車位 ${bemp}`);
-    console.log(`站狀態 ${act}`);
-    console.log(`區域 ${location}`);
-    console.log(db_data.length);
-    result.sno = sno;
-    result.sbi = parseInt(sbi);
-    result.bemp = parseInt(bemp);
-    result.act = act;
-    result.location = location;
-
-    for (let i = 0; i < db_data.length; i++) {
-    	// console.log(`db date ${db_data[i].data_time}`);
-    	// console.log(`[${i}] ${moment(db_data[i].data_time).hour()}, now ${now_hr} t: ${db_data[i].t} pop: ${db_data[i].pop}`);
-    	if(moment(db_data[i].data_time).date() == now_day && moment(db_data[i].data_time).hour() > now_hr){
-    		result.t = db_data[i-1].t;
-    		result.pop = db_data[i-1].pop;
-    		console.log(`溫度 ${db_data[i-1].t}`);
-    		console.log(`降雨機率% ${db_data[i-1].pop}`);
-    		break;
-    	}
+  let result = {};
+  let rate = 0;
+  console.log(`id: ${sno}`);
+  console.log(`可借車位 ${sbi} 可還車位 ${bemp}`);
+  console.log(`站狀態 ${act}`);
+  console.log(`區域 ${location}`);
+  
+  result.sno = sno;
+  result.sbi = parseInt(sbi);
+  result.bemp = parseInt(bemp);
+  result.act = act;
+  result.location = location;
+  result.t = 23;
+  result.pop = 10;
+  for (let i = 0; i < db_data.length; i++) {
+    
+    if (moment(db_data[i].data_time).date() == now_day && moment(db_data[i].data_time).hour() <= now_hr) {
+      result.t = db_data[i].t;
+      result.pop = db_data[i].pop;
+    } else {
+        break;
     }
+  }
+
+  console.log(`溫度 ${result.t}`);
+  console.log(`降雨機率% ${result.pop}`);
+
+  //get full rate
+  const fullrate = Math.floor(result.sbi / (result.sbi + result.bemp) * 100);
+  console.log(`start ${start}  full ${fullrate}`);
+
+  if(result.pop > 70){
+    console.log('rain');
+    result.rate = rate;
     return result;
+  }
+
+  if(start){
+
+    if(result.t > 27){
+      rate += (result.t - 27) * 0.5;
+    }
+
+    if(fullrate > 90){
+      rate += fullrate - 90;
+    }
+
+    const now = moment().utcOffset('+0800').format('HH:mm:ss'); //.utcOffset('+0800')
+    console.log(`now ${now}`);
+    const time = moment(now, format);
+
+    if (time.isBetween(moment('07:30:00', format), moment('09:00:00', format))) {
+      console.log('is between 0730 - 0900');
+      rate += 1;
+    } else if (time.isBetween(moment('17:30:00', format), moment('19:30:00', format))) {
+      console.log('is between 1730 - 1930');
+      rate += 2;
+    } else if (time.isBetween(moment('02:00:00', format), moment('05:00:00', format))) {
+      console.log('is between 0200 - 0500');
+      rate += 0.5;
+    }
+
+  } else {
+
+    if(fullrate < 20){
+      rate += 20 - fullrate;
+    }
+
+  }
+
+  console.log(`------`)
+  result.rate = rate;
+  return result;
 }
 module.exports = async(req, res) => {
   try {
-    let start_sno = req.body.start;
-    let end_sno = req.body.end;
+    console.log(`req.body.start: ${req.body.start}`);
+    console.log(`req.body.end: ${req.body.end}`);
+    let start_sno = req.body.start.replace(/[^a-zA-Z0-9]/g, "") ? req.body.start.replace(/[^a-zA-Z0-9 ]/g, ""):'0067';
+    let end_sno = req.body.end.replace(/[^a-zA-Z0-9]/g, "") ? req.body.end.replace(/[^a-zA-Z0-9 ]/g, ""):'1200';
     let result = [];
-   	result.push(await sno2data(start_sno));
-   	result.push(await sno2data(end_sno));
+    let rate = 1;
+    result.push(await sno2data(start_sno,1));
+    result.push(await sno2data(end_sno));
+    result.push(rate+result[0].rate+result[1].rate);
     console.log(result);
 
 
