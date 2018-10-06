@@ -184,9 +184,9 @@ $('#toolbar .hamburger').on('click', function() {
 $(function() {
     if (localStorage.youbike_wallet) {
         $('#address').text(JSON.parse(localStorage.youbike_wallet)[0]);
-        $('#private_key').text(JSON.parse(localStorage.youbike_wallet)[1]);
         $('#new_wallet').hide();
         $('#remove_wallet').show();
+        $('#show_wallet').show();
     }
 
 });
@@ -194,10 +194,10 @@ $(function() {
 $('#new_wallet').on('click', function() {
     generate();
     $('#address').text(newWallet[0]);
-    $('#private_key').text(newWallet[1]);
     localStorage.youbike_wallet = JSON.stringify(newWallet);
     $('#new_wallet').hide();
     $('#remove_wallet').show();
+    $('#show_wallet').show();
 });
 
 $('#remove_wallet').on('click', function() {
@@ -207,6 +207,18 @@ $('#remove_wallet').on('click', function() {
     localStorage.youbike_wallet = "";
     $('#new_wallet').show();
     $('#remove_wallet').hide();
+    $('#show_wallet').hide();
+});
+
+$('#show_wallet').on('click', function() {
+  if ($('#private_key').text()) {
+    $('#private_key').text("");
+    $('#private_zone').hide();
+  }
+  else {
+    $('#private_key').text(JSON.parse(localStorage.youbike_wallet)[1]);
+    $('#private_zone').show();
+  }
 });
 
 $('#locate').on('click', function() {

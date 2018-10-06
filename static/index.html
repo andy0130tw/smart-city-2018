@@ -14,9 +14,15 @@
             <div>
                 <span>Address:</span>
                 <p id="address"></p>
-                <span>Private Key:</span>
-                <p id="private_key"></p>
+                <div id="private_zone" style="display: none;">
+	                <span>Private Key:</span>
+	                <p id="private_key"></p>
+	                <!--
+	                <h2><button id="copy" class="btn btn-secondary" data-clipboard-target="#private_key">Copy Private Key</button></h2>
+	                -->
+                </div>
                 <h2><button id="new_wallet" class="btn btn-primary">New Wallet</button></h2>
+                <h2><button id="show_wallet" class="btn btn-warning" style="display: none;">Show Private Key</button></h2>
                 <h2><button id="remove_wallet" class="btn btn-danger" style="display: none;">Remove Wallet</button></h2>
             </div>
         </div>
