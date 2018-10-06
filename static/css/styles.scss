@@ -21,11 +21,11 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
 }
 
 #cal {
+  word-wrap: break-word;
   background: rgba(255, 255, 255, 1);
   opacity: .75;
-  width: 300px;
-  height: 600px;
-  height: 45vh;
+  width: 250px;
+  height: relative;
   position: absolute;
   right: 0;
   z-index: 1;
@@ -37,11 +37,11 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
 #toolbar {
   background: rgba(255, 255, 255, 1);
   opacity: .6;
-  width: 200px;
+  width: 250px;
   height: 600px;
   height: 100vh;
   position: absolute;
-  left: -200px;
+  left: -250px;
   z-index: 1;
   transition: .5s left;
   padding: 20px;
@@ -118,4 +118,23 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
     transform: scale(.1);
     opacity: 1;
   }
+}
+
+
+.float{
+  position:fixed;
+  width:60px;
+  height:60px;
+  bottom:40px;
+  right:40px;
+  background-color:#fd7e14;
+  color:#FFF;
+  border-radius:50px;
+  text-align:center;
+  box-shadow: 2px 2px 3px #999;
+  z-index: 1;
+}
+
+.my-float{
+  margin-top:22px;
 }
