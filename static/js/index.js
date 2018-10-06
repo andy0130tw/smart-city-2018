@@ -63,7 +63,9 @@ function parseCSV(csv) {
             });
 
             let marker = L.marker([lat, lng], { icon: mark })
-                          .bindPopup(`<h2>${sna}</h2><p class="lead">@${sarea} x ${tot}</p>`);
+                          .bindPopup(`<h2>${sna}</h2><p class="lead">@${sarea} x ${tot}</p>'<br/>
+                            <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]">Start</button>&nbsp
+                            <button type="button" class="btn btn-success end-btn" value="[${lat}, ${lng}]">Goal</button>`);
 
             markers.push(marker);
         });
@@ -75,6 +77,15 @@ function parseCSV(csv) {
 parseCSV(csv1);
 parseCSV(csv2);
 
+$("div").on("click", '.start-btn', function () {
+    console.log($(this).val());
+    $("#start").val($(this).val());
+});
+
+$("div").on("click", '.end-btn', function () {
+    console.log($(this).val());
+    $("#end").val($(this).val());
+});
 
 // var password = 'Zxc1233211234567';
 var keystore = {};
