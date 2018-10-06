@@ -44,7 +44,6 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
   left: -250px;
   z-index: 1;
   transition: .5s left;
-  padding: 20px;
   box-sizing: border-box;
 }
 
@@ -77,8 +76,8 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
 }
 
 #menu {
-  overflow-y: scroll;
   max-height: 95vh;
+  padding: 20px;
 }
 
 #toolbar ul {
@@ -97,11 +96,29 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
   color: #666;
 }
 
+#toolbar {
+  .caption {
+    font-size: 1.4rem;
+    line-height: 1.6rem;
+  }
+  .value {
+    font-weight: 500;
+    text-align: right;
+    font-size: 2rem;
+    line-height: 2rem;
+    padding-bottom: .5rem;
+  }
+}
+
+.leaflet-popup {
+  font-size: 1.1rem;
+}
+
 .notify-icon span{
   display: inline-block;
   border: 1px solid orange;
   border-radius: 50%;
-  height: 24px; 
+  height: 24px;
   width: 24px;
   animation: pulse .6s 4 forwards;
   transform-origin: center center;

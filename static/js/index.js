@@ -25,6 +25,13 @@ var map = L.map('map', {
 }).setView([25.046401, 121.517641], 12);
 
 var layerCurPos = L.layerGroup().addTo(map);
+var layerAttentionMarkup = L.layerGroup().addTo(map);
+
+var currentPosition = null;
+var lastStartPosition = null;
+var lastStartSno = null;
+
+var state = 'idle';
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
@@ -63,9 +70,49 @@ function parseCSV(csv) {
             });
 
             let marker = L.marker([lat, lng], { icon: mark })
-                          .bindPopup(`<h2>${sna}</h2><p class="lead">@${sarea} x ${tot}</p>'<br/>
-                            <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]">Start</button>&nbsp
-                            <button type="button" class="btn btn-success end-btn" value="[${lat}, ${lng}]">Goal</button>`);
+                          .bindPopup(() => (
+                            `<h2>${sna}</h2><p class="info">@${sarea} x ${tot}<br/>
+                            <span class="distance"></span>
+                            <span class="tokenInfo"></span></p>
+                            <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]" data-sno="${sno}">開始騎乘</button>&nbsp;
+                            <button type="button" class="btn btn-success end-btn" ${state == 'riding' ? '' : 'disabled'} value="[${lat}, ${lng}]" data-sno="${sno}">還車</button>`));
+
+            marker.sno = sno;
+
+            marker.addEventListener('click', evt => {
+              if (state == 'idle') {
+                if (currentPosition) {
+                  let distance = marker.getLatLng().distanceTo(currentPosition);
+                  $('.leaflet-popup .distance').html(`距離現在位置 ${Math.round(distance)}m`);
+                }
+              } else {
+                let distance = marker.getLatLng().distanceTo(lastStartPosition);
+                if (distance == 0) {
+                  $('.leaflet-popup .distance').html(`<strong>起始點</strong>`);
+                } else {
+                  $('.leaflet-popup .distance').html(`距離租車點 ${Math.round(distance)}m`);
+                  fetch('http://35.221.238.24:3000/api/get', {
+                    method: 'POST',
+                    body: `start=${lastStartSno}&end=${evt.target.sno}`,
+                    headers: {
+                      'content-type': 'application/x-www-form-urlencoded'
+                    },
+                  })
+                  .then(resp => resp.json())
+                  .then(data => {
+                    console.log(data);
+
+                    let mul = data.result[2];
+                    console.log('mul', mul);
+                    $('.leaflet-popup .tokenInfo').html(
+                      `可還車位：${data.result[1].bemp}<br>
+                      試算積點：<strong>${(mul * distance / 100).toFixed(3)}</strong>`);
+                  });
+                }
+              }
+
+              console.log('marker click', marker, evt);
+            });
 
             markers.push(marker);
         });
@@ -77,12 +124,20 @@ function parseCSV(csv) {
 parseCSV(csv1);
 parseCSV(csv2);
 
-$("div").on("click", '.start-btn', function () {
-    console.log($(this).val());
+$("#map").on("click", '.leaflet-popup .start-btn', function () {
+    let loc = JSON.parse($(this).val());
+    let circle = L.circleMarker(loc, { radius: 40, color: '#f44336' });
+    layerAttentionMarkup.clearLayers();
+    layerAttentionMarkup.addLayer(circle);
+
+    state = 'riding';
+    lastStartPosition = loc;
+    lastStartSno = $(this).data('sno');
+
     $("#start").val($(this).val());
 });
 
-$("div").on("click", '.end-btn', function () {
+$("#map").on("click", '.leaflet-popup .end-btn', function () {
     console.log($(this).val());
     $("#end").val($(this).val());
 });
@@ -156,7 +211,6 @@ function addressToLatLng(addr) {
 
 function geolocate() {
   var infoWindow = new google.maps.InfoWindow;
-  console.log()
   if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function(position) {
           var pos = {
@@ -166,6 +220,7 @@ function geolocate() {
 
           let latlng = [pos.lat, pos.lng];
           map.setView(latlng, 17);
+          currentPosition = pos;
 
           let mark = L.ExtraMarkers.icon({
               icon: 'fa-location-arrow',

@@ -24,9 +24,11 @@ if (localStorage.youbike_wallet) {
 let contract = new web3.eth.Contract(ABI, addrContract);
 
 contract.methods.balances(web3.eth.defaultAccount).call().then(bal => {
-    console.log(bal);
+  $('#dispTokenBalance').text(parseFloat(Web3.utils.fromWei(bal)).toFixed(3));
 });
 
+// for demo
+$('#dispTokenPendingBalance').text();
 
 
 export default {
