@@ -5,9 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet/dist/images/marker-shadow.png';
 import yoethwallet from 'yoethwallet'
 
-
-// import '@fortawesome/fontawesome-free/js/solid';
-// import '@fortawesome/fontawesome-free/js/fontawesome';
+import Controller from './controller';
 
 import csv1 from '../../hack2018台北.csv';
 import csv2 from '../../hack2018新北.csv';
