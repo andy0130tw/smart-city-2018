@@ -180,6 +180,10 @@ $("#redeem_by_admin").on("click", function () {
       $('#dispTokenPendingBalance').text(0);
       localStorage.dispTokenPendingBalance = '0';
     }
+    else if(data.msg == "amount mismatch") {
+      $('#dispTokenPendingBalance').text(0);
+      localStorage.dispTokenPendingBalance = '0';
+    }
   });
 });
 
