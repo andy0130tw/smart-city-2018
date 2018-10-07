@@ -106,12 +106,24 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
     text-align: right;
     font-size: 2rem;
     line-height: 2rem;
-    padding-bottom: .5rem;
+    margin-bottom: 16px;
   }
 }
 
 .leaflet-popup {
   font-size: 1.1rem;
+
+  .region {
+    font-size: .5em;
+    color: #777;
+  }
+}
+
+#returnBike {
+  .dispStart, .dispEnd {
+    font-size: 2rem;
+    font-weight: 500;
+  }
 }
 
 .notify-icon span{
@@ -137,6 +149,9 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
   }
 }
 
+.extra-marker i {
+  line-height: 20px;
+}
 
 .float{
   position:fixed;
@@ -150,6 +165,12 @@ $fa-font-path: '../../node_modules/@fortawesome/fontawesome-free/webfonts';
   text-align:center;
   box-shadow: 2px 2px 3px #999;
   z-index: 1;
+  transition: background-color 300ms ease-out;
+
+  &:hover {
+    color: #FFF;
+    background-color: #ff9800;
+  }
 }
 
 .my-float{

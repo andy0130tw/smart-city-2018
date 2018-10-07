@@ -21,8 +21,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 var map = L.map('map', {
     minZoom: 10,
     maxBounds: [
-        [24.5, 120],
-        [25.5, 123]
+      [24.5, 120],
+      [25.5, 123]
     ]
 }).setView([25.046401, 121.517641], 12);
 
@@ -32,12 +32,13 @@ var layerAttentionMarkup = L.layerGroup().addTo(map);
 var currentPosition = null;
 var lastStartPosition = null;
 var lastStartSno = null;
+var lastStartSna = null;
 
 var state = 'idle';
 
 L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    attribution: '&copy; <a href="https://map.google.com">Google Map</a>',
     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
 }).addTo(map);
 
@@ -68,16 +69,16 @@ function parseCSV(csv) {
                 icon: 'fa-bicycle',
                 markerColor: 'blue',
                 shape: 'square',
-                prefix: 'fa'
+                prefix: 'fas'
             });
 
             let marker = L.marker([lat, lng], { icon: mark })
                           .bindPopup(() => (
-                            `<h2>${sna}</h2><p class="info">@${sarea} x ${tot}<br/>
+                            `<h2>${sna}<small class="region">${sarea}</small></h2><p class="info"><i class="fas fa-bicycle"></i> &times; ${tot}<br/>
                             <span class="distance"></span>
                             <span class="tokenInfo"></span></p>
-                            <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]" data-sno="${sno}">開始騎乘</button>&nbsp;
-                            <button type="button" class="btn btn-success end-btn" ${state == 'riding' ? '' : 'disabled'} value="[${lat}, ${lng}]" data-sno="${sno}" data-toggle="modal" data-target="#returnBike">還車</button>`));
+                            <button type="button" class="btn btn-success start-btn" value="[${lat}, ${lng}]" data-sna="${sna}" data-sno="${sno}">開始騎乘</button>&nbsp;
+                            <button type="button" class="btn btn-success end-btn" ${state == 'riding' ? '' : 'disabled'} value="[${lat}, ${lng}]" data-sna="${sna}" data-sno="${sno}">還車</button>`));
 
             marker.sno = sno;
 
@@ -87,13 +88,26 @@ function parseCSV(csv) {
                   let distance = marker.getLatLng().distanceTo(currentPosition);
                   $('.leaflet-popup .distance').html(`距離現在位置 ${Math.round(distance)}m`);
                 }
+
+                fetch('//youbike.smartcontract.tw/api/get', {
+                  method: 'POST',
+                  body: `start=${evt.target.sno}&end=${evt.target.sno}`,
+                  headers: {
+                    'content-type': 'application/x-www-form-urlencoded'
+                  },
+                })
+                .then(resp => resp.json())
+                .then(data => {
+                  $('.leaflet-popup .tokenInfo').html(
+                    `可借單車數：${data.result[0].bemp}`);
+                });
               } else {
                 let distance = marker.getLatLng().distanceTo(lastStartPosition);
                 if (distance == 0) {
                   $('.leaflet-popup .distance').html(`<strong>起始點</strong>`);
                 } else {
-                  $('.leaflet-popup .distance').html(`距離租車點 ${Math.round(distance)}m`);
-                  fetch('http://35.221.238.24:4000/api/get', {
+                  $('.leaflet-popup .distance').html(`距離出發點 ${Math.round(distance)}m<br>`);
+                  fetch('//youbike.smartcontract.tw/api/get', {
                     method: 'POST',
                     body: `start=${lastStartSno}&end=${evt.target.sno}`,
                     headers: {
@@ -105,10 +119,12 @@ function parseCSV(csv) {
                     console.log(data);
 
                     let mul = data.result[2];
+                    let reward = (mul * distance / 100).toFixed(3);
                     console.log('mul', mul);
                     $('.leaflet-popup .tokenInfo').html(
                       `可還車位：${data.result[1].bemp}<br>
-                      試算積點：<strong>${(mul * distance / 100).toFixed(3)}</strong>`);
+                      試算獲得積點：<strong>${reward}</strong>`);
+                    $('.leaflet-popup .end-btn').data('reward', reward);
                   });
                 }
               }
@@ -135,12 +151,22 @@ $("#map").on("click", '.leaflet-popup .start-btn', function () {
     state = 'riding';
     lastStartPosition = loc;
     lastStartSno = $(this).data('sno');
+    lastStartSna = $(this).data('sna');
+});
+
+$("#map").on("click", '.leaflet-popup .end-btn', function () {
+  let loc = JSON.parse($(this).val());
+  let $modal = $('#returnBike');
+  $modal.modal('show');
+  $modal.find('.dispStart').html(lastStartSna);
+  $modal.find('.dispEnd').html($(this).data('sna'));
+  $modal.find('.dispTokenReward').html($(this).data('reward'));
 });
 
 $("#redeem_by_admin").on("click", function () {
   var signature = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenPendingBalance);
 
-  fetch('http://35.221.238.24:4000/api/redeemByAdmin', {
+  fetch('//youbike.smartcontract.tw/api/redeemByAdmin', {
     method: 'POST',
     body: `address=${JSON.parse(localStorage.youbike_wallet)[0]}&signature=${signature}&amount=${localStorage.dispTokenPendingBalance}`,
     headers: {
@@ -152,6 +178,7 @@ $("#redeem_by_admin").on("click", function () {
     console.log(data);
     if (data.result) {
       $('#dispTokenPendingBalance').text(0);
+      localStorage.dispTokenPendingBalance = '0';
     }
   });
 });
@@ -162,9 +189,10 @@ const addrContract = '0xc37c19360c617d2f425dc2b1191eca5662aed525';
 $("#submit_return").on("click", function () {
     let end_loc = $(".end-btn").data('sno');
     console.log("end_loc: " + end_loc)
-    
+    state = 'idle';
+
     if (localStorage.youbike_wallet) {
-      fetch('http://35.221.238.24:4000/api/commit', {
+      fetch('//youbike.smartcontract.tw/api/commit', {
         method: 'POST',
         body: `start=${lastStartSno}&end=${end_loc}&address=${JSON.parse(localStorage.youbike_wallet)[0]}`,
         headers: {
@@ -312,10 +340,10 @@ function geolocate() {
           let mark = L.ExtraMarkers.icon({
               icon: 'fa-location-arrow',
               markerColor: 'yellow',
-              prefix: 'fa'
+              prefix: 'fas'
           });
 
-          let marker = L.marker(latlng, { icon: mark });
+          let marker = L.marker(latlng, { icon: mark }).bindPopup('你在這裡');
           layerCurPos.clearLayers();
           layerCurPos.addLayer(marker);
 

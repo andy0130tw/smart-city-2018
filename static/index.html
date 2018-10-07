@@ -12,18 +12,18 @@
     <div id="mapwrap">
         <div id="cal">
             <div>
-                <span>Address:</span>
+                <span>地址：</span>
                 <p id="address"></p>
                 <div id="private_zone" style="display: none;">
-	                <span>Private Key:</span>
+	                <span>私鑰：</span>
 	                <p id="private_key"></p>
 	                <!--
 	                <h2><button id="copy" class="btn btn-secondary" data-clipboard-target="#private_key">Copy Private Key</button></h2>
 	                -->
                 </div>
-                <h2><button id="new_wallet" class="btn btn-primary">New Wallet</button></h2>
-                <h2><button id="show_wallet" class="btn btn-warning" style="display: none;">Show Private Key</button></h2>
-                <h2><button id="remove_wallet" class="btn btn-danger" style="display: none;">Remove Wallet</button></h2>
+                <h2><button id="new_wallet" class="btn btn-primary">建立帳號</button></h2>
+                <h2><button id="show_wallet" class="btn btn-warning" style="display: none;">顯示私鑰</button></h2>
+                <h2><button id="remove_wallet" class="btn btn-danger" style="display: none;">移除帳號</button></h2>
             </div>
         </div>
         <div id="toolbar">
@@ -34,10 +34,11 @@
                 <div>
                     <div class="caption">里程積點</div>
                     <div id="dispTokenBalance" class="value">...</div>
-                    <div class="caption">累計中積點</div>
+                    <div class="caption">累計中點數</div>
                     <div id="dispTokenPendingBalance" class="value">...</div>
+                    <p>100m = 1點</p>
 
-                    <h2><button id="redeem_by_admin" class="btn btn-primary">Redeem by Admin</button></h2>
+                    <h2><button id="redeem_by_admin" class="btn btn-primary">累計點數入帳</button></h2>
                 </div>
             </div>
         </div>
@@ -58,7 +59,14 @@
             </button>
           </div>
           <div class="modal-body">
-            確認還車後將取得伺服器端之簽章用於申請里程積點。
+            <div class="grid">
+              <div class="row" style="justify-content: center;text-align: center;align-items: center;height: 6em;">
+                <div class="col-sm-5 dispStart"></div>
+                <div><i class="fas fa-arrow-right"></i></div>
+                <div class="col-sm-5 dispEnd"></div>
+              </div>
+            </div>
+            確認還車後將連網驗證，並將 <strong class="dispTokenReward"></strong> 點計入此帳號。
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
