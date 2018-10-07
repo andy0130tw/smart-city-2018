@@ -179,6 +179,8 @@ $("#redeem_by_admin").on("click", function () {
     if (data.result) {
       $('#dispTokenPendingBalance').text(0);
       localStorage.dispTokenPendingBalance = '0';
+      $('#txhash').attr('href', "https://rinkeby.etherscan.io/tx/" + data.txhash);
+      $('#txhash').show();
     }
     else if(data.msg == "amount mismatch") {
       $('#dispTokenPendingBalance').text(0);
