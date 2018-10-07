@@ -26,6 +26,7 @@ server.use(method.log.logStream);
 //route
 server.post('/api/get', route.getdata);
 server.post('/api/commit', route.commit);
+server.post('/api/redeemByAdmin', route.redeemByAdmin);
 
 server.on('restifyError', function(req, res, err, callback) {
   res.send(404, null);

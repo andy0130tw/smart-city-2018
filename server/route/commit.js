@@ -73,8 +73,8 @@ module.exports = async(req, res) => {
     let newHash = Web3.utils.soliditySha3(
       address,
       process.env.ADDRCONTRACT,
-      new_amount.toString(),
-      nonce
+      nonce,
+      new_amount.toString()
     );
 
     let vrs = ethUtil.ecsign(ethUtil.toBuffer(newHash), Buffer.from(process.env.ETHPRIVATEKEY, 'hex'));
