@@ -36,7 +36,7 @@ if (web3.eth.defaultAccount) {
 	$('#dispTokenPendingBalance').text(parseFloat(Web3.utils.fromWei(localStorage.dispTokenPendingBalance)).toFixed(3));
 }
 
-
+window.contract = contract;
 
 
 export default {

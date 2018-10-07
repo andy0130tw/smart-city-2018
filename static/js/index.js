@@ -137,16 +137,33 @@ $("#map").on("click", '.leaflet-popup .start-btn', function () {
     lastStartSno = $(this).data('sno');
 });
 
+$("#redeem_by_admin").on("click", function () {
+  var signature = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenPendingBalance);
+
+  fetch('http://35.221.238.24:4000/api/redeemByAdmin', {
+    method: 'POST',
+    body: `address=${JSON.parse(localStorage.youbike_wallet)[0]}&signature=${signature}&amount=${localStorage.dispTokenPendingBalance}`,
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded'
+    },
+  })
+  .then(resp => resp.json())
+  .then(data => {
+    console.log(data);
+    if (data.result) {
+      $('#dispTokenPendingBalance').text(0);
+    }
+  });
+});
+
 
 const addrContract = '0xc37c19360c617d2f425dc2b1191eca5662aed525';
 
 $("#submit_return").on("click", function () {
     let end_loc = $(".end-btn").data('sno');
     console.log("end_loc: " + end_loc)
-    // let sig = siginRedeemByAdmin(JSON.parse(localStorage.youbike_wallet)[0], JSON.parse(localStorage.youbike_wallet)[1], localStorage.dispTokenBalance);
-
+    
     if (localStorage.youbike_wallet) {
-        console.log("123");
       fetch('http://35.221.238.24:4000/api/commit', {
         method: 'POST',
         body: `start=${lastStartSno}&end=${end_loc}&address=${JSON.parse(localStorage.youbike_wallet)[0]}`,
@@ -173,7 +190,7 @@ $("#submit_return").on("click", function () {
 
 function ecrecoverRedeemByAdmin(response) {
 
-  var hash = ethUtil.toBuffer(Web3.utils.soliditySha3(JSON.parse(localStorage.youbike_wallet)[0], addrContract, response.new_amount, localStorage.nonce));
+  var hash = ethUtil.toBuffer(Web3.utils.soliditySha3(JSON.parse(localStorage.youbike_wallet)[0], addrContract, localStorage.nonce, response.new_amount));
 
 
   let recoveredPubKey = ethUtil.ecrecover(
@@ -191,7 +208,12 @@ function ecrecoverRedeemByAdmin(response) {
 
 function siginRedeemByAdmin(address, privatekey, amount) {
   var privkey = new Buffer(privatekey, 'hex');
-  var data = ethUtil.toBuffer(Web3.utils.soliditySha3(address, addrContract, amount, localStorage.nonce));
+
+  contract.methods.nonce(address).call().then(newNonce => {
+    localStorage.nonce = newNonce;
+  })
+
+  var data = ethUtil.toBuffer(Web3.utils.soliditySha3(address, addrContract, localStorage.nonce, amount));
   var vrs = ethUtil.ecsign(data, privkey);
   var pubkey = ethUtil.ecrecover(data, vrs.v, vrs.r, vrs.s);
   console.log("0x" + vrs.r.toString('hex') + vrs.s.toString('hex') + vrs.v.toString(16));
